@@ -35,3 +35,20 @@ Finish time: 3:30
 
 Actual time needed to complete: 30 Mins
 
+
+--------------------
+
+
+
+Number and name of feature:  Locations: As a user of City Explorer, I want to enter the name of a location so that I can see data about the area of interest to me.
+
+Estimate of time needed to complete: 30 Mins
+
+Start time: 3:30
+
+Finish time: 
+
+Actual time needed to complete: 
+
+
+
