@@ -17,23 +17,22 @@ app.use(cors());
 
 // This is the Routes to find the files and get data from them 
 app.get('/location', getLocation)
-app.get('/', () => console.log("WELCOME!"));
+    // app.get('/', () => console.log("WELCOME!"));
 
 function getLocation(request, response) {
     const searchQuery = request.query;
 
     const locationData = require('./data/location.json')
-    console.log(locationData);
     const eachLocation = new LocationDataToFit(locationData[0])
 
     response.send(eachLocation);
 }
 
 function LocationDataToFit(data) {
-    this.formatted_query = data.display_name;
+    this.display_name = data.display_name;
     this.search_query = data.type
-    this.latitude = data.lat;
-    this.longitude = data.lon;
+    this.lat = data.lat;
+    this.lon = data.lon;
 }
 
 
