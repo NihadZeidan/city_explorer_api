@@ -17,15 +17,16 @@ app.use(cors());
 
 // This is the Routes to find the files and get data from them 
 app.get('/location', getLocation);
-// app.get('/', () => console.log("WELCOME!"));
+app.get('/', () => console.log("WELCOME!"));
 app.get('/weather', getWeather);
+app.use('*', error);
 
 
 function getWeather(request, response) {
     const searchQuery = request.query;
 
-    let weatherData = require("./data/weather.json");
-    let eachWeather = new WeatherDataToFit(weatherData.data[0]);
+    const weatherData = require("./data/weather.json");
+    const eachWeather = new WeatherDataToFit(weatherData.data[0]);
 
     response.send(eachWeather);
 }
@@ -38,6 +39,18 @@ function getLocation(request, response) {
     response.send(eachLocation);
 
 }
+
+function error(request, response) {
+
+    const searchQuery = request.query;
+    const obj = {
+        status: 500,
+        responseText: "Sorry, something went wrong",
+    }
+    response.send(obj)
+}
+
+
 
 //  Constractor functions to fit the data with the frontEnd
 function LocationDataToFit(data) {
@@ -56,4 +69,4 @@ function WeatherDataToFit(day) {
 
 
 //  This to Listen to your port when your run it !
-app.listen(PORT, () => console.log(`HEy TherE! ${PORT} `))
+app.listen(PORT, () => console.log(PORT));
