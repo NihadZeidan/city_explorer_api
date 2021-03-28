@@ -29,10 +29,10 @@ function getLocation(request, response) {
 }
 
 function LocationDataToFit(data) {
-    this.display_name = data.display_name;
+    this.formatted_query = data.display_name;
     this.search_query = data.type
-    this.lat = data.lat;
-    this.lon = data.lon;
+    this.latitude = data.lat;
+    this.longitude = data.lon;
 }
 
 
