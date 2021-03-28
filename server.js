@@ -30,7 +30,7 @@ function getLocation(request, response) {
 
 function LocationDataToFit(data) {
     this.formatted_query = data.display_name;
-    this.search_query = data.type
+    this.search_query = data.icon
     this.latitude = data.lat;
     this.longitude = data.lon;
 }
