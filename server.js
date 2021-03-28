@@ -19,20 +19,23 @@ app.use(cors());
 app.get('/location', getLocation);
 app.get('/', () => console.log("WELCOME!"));
 app.get('/weather', getWeather);
-app.use('*', error);
+app.use('*', handleError);
 
 
 function getWeather(request, response) {
-    const searchQuery = request.query;
+    const searchQuery = request.weather;
+    let arr = [];
 
     const weatherData = require("./data/weather.json");
     const eachWeather = new WeatherDataToFit(weatherData.data[0]);
+    arr.push(eachWeather);
 
-    response.send(eachWeather);
+
+    response.send(arr);
 }
 
 function getLocation(request, response) {
-    const searchQuery = request.query;
+    const searchQuery = request.location;
 
     const locationData = require('./data/location.json')
     const eachLocation = new LocationDataToFit(locationData[0])
@@ -40,14 +43,11 @@ function getLocation(request, response) {
 
 }
 
-function error(request, response) {
+function handleError(request, response) {
+    const status = 500;
+    const responseText = "Sorry, something went wrong";
+    response.status(status).send(responseText)
 
-    const searchQuery = request.query;
-    const obj = {
-        status: 500,
-        responseText: "Sorry, something went wrong",
-    }
-    response.send(obj)
 }
 
 
@@ -61,8 +61,9 @@ function LocationDataToFit(data) {
 }
 
 function WeatherDataToFit(day) {
-    this.forecast = day.weather.description
-    this.time = day.datetime
+    this.forecast = day.weather.description;
+    this.time = day.datetime;
+
 }
 
 
