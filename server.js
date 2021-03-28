@@ -18,7 +18,7 @@ app.use(cors());
 
 // This is the Routes to find the files and get data from them 
 app.get('/location', getLocation);
-app.get('/', () => console.log("WELCOME!"));
+// app.get('/', () => console.log("WELCOME!"));
 app.get('/weather', getWeather);
 app.use('*', handleError);
 
