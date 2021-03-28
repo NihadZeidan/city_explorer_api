@@ -6,6 +6,7 @@ require('dotenv').config();
 // This to load the dependancioes for the APP
 const express = require("express");
 const cors = require("cors");
+const { request } = require('express');
 
 
 // Set-up 
@@ -22,23 +23,24 @@ app.get('/weather', getWeather);
 app.use('*', handleError);
 
 
+// Functions to request and response 
 function getWeather(request, response) {
-    const searchQuery = request.weather;
+    const searchQuery = request.query;
     let arr = [];
 
     const weatherData = require("./data/weather.json");
     const eachWeather = new WeatherDataToFit(weatherData.data[0]);
     arr.push(eachWeather);
 
-
     response.send(arr);
 }
 
+
 function getLocation(request, response) {
-    const searchQuery = request.location;
+    const search_query = request.query.city
 
     const locationData = require('./data/location.json')
-    const eachLocation = new LocationDataToFit(locationData[0])
+    const eachLocation = new LocationDataToFit(locationData[0], search_query)
     response.send(eachLocation);
 
 }
@@ -53,11 +55,11 @@ function handleError(request, response) {
 
 
 //  Constractor functions to fit the data with the frontEnd
-function LocationDataToFit(data) {
+function LocationDataToFit(data, searchQuery) {
     this.formatted_query = data.display_name;
     this.latitude = data.lat;
     this.longitude = data.lon;
-    this.search_query = data.type
+    this.search_query = searchQuery
 }
 
 function WeatherDataToFit(day) {
@@ -65,8 +67,6 @@ function WeatherDataToFit(day) {
     this.time = day.datetime;
 
 }
-
-
 
 
 //  This to Listen to your port when your run it !
