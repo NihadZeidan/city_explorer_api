@@ -28,19 +28,33 @@ function getWeather(request, response) {
     const searchQuery = request.query;
     let arr = [];
 
-    const weatherData = require("./data/weather.json");
-    const eachWeather = new WeatherDataToFit(weatherData.data[0]);
-    arr.push(eachWeather);
+    try {
 
-    response.send(arr);
+        const weatherData = require("./data/weather.json");
+        weatherData.data.forEach(item => {
+            const eachWeather = new WeatherDataToFit(item);
+            arr.push(eachWeather);
+        })
+
+        response.send(arr);
+    } catch (error) {
+        response.status(404).send("something wrong")
+    }
+
 }
 
 
 function getLocation(request, response) {
-    const search_query = request.query.city
+    const selected = request.query.city
+        // we can put also  ===> searchQuery.city
+
+
+    if (!selected) {
+        response.status(404).send("City not found")
+    }
 
     const locationData = require('./data/location.json')
-    const eachLocation = new LocationDataToFit(locationData[0], search_query)
+    const eachLocation = new LocationDataToFit(locationData[0], selected)
     response.send(eachLocation);
 
 }
@@ -49,7 +63,6 @@ function handleError(request, response) {
     const status = 500;
     const responseText = "Sorry, something went wrong";
     response.status(status).send(responseText)
-
 }
 
 
@@ -59,7 +72,7 @@ function LocationDataToFit(data, searchQuery) {
     this.formatted_query = data.display_name;
     this.latitude = data.lat;
     this.longitude = data.lon;
-    this.search_query = searchQuery
+    this.search_query = searchQuery;
 }
 
 function WeatherDataToFit(day) {
