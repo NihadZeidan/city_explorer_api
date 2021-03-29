@@ -7,16 +7,21 @@ require('dotenv').config();
 const express = require("express");
 const cors = require("cors");
 const { request } = require('express');
-
+const superagent = require('superagent');
 
 // Set-up 
 const PORT = process.env.PORT
 const app = express();
+const Geo_Key = process.env.Geo_Key
+const weather_Key = process.env.weather_Key
+const NPS_Key = process.env.NPS_Key
 app.use(cors());
 
 
 
+
 // This is the Routes to find the files and get data from them 
+
 app.get('/location', getLocation);
 // app.get('/', () => console.log("WELCOME!"));
 app.get('/weather', getWeather);
@@ -25,37 +30,55 @@ app.use('*', handleError);
 
 // Functions to request and response 
 function getWeather(request, response) {
-    const searchQuery = request.query;
-    let arr = [];
+    // const searchQuery = request.query;
+    // const weatherQuery = {
+    //     key: weather_Key
+    // }
+    const url = `https://api.weatherbit.io/v2.0/current${weather_Key}`
 
-    try {
 
-        const weatherData = require("./data/weather.json");
-        weatherData.data.forEach(item => {
-            const eachWeather = new WeatherDataToFit(item);
-            arr.push(eachWeather);
-        })
 
-        response.send(arr);
-    } catch (error) {
-        response.status(404).send("something wrong")
-    }
+    // const weatherData = require("./data/weather.json");
+    superagent.get(url).then(allData => {
+        const eachWeather = new WeatherDataToFit(allData);
+        response.send(eachWeather);
+
+    }).catch((error) => {
+        response.status(500).send("something went wrong")
+    })
 
 }
+// weatherData.data.map(item => {
+//     arr.push(eachWeather);
+// })
+// }
 
+
+// ---------------------------
 
 function getLocation(request, response) {
     const selected = request.query.city
         // we can put also  ===> searchQuery.city
+    const geoQuery = {
+        key: Geo_Key,
+        city: selected,
+        format: 'json'
+    }
+
+    const url = `https://eu1.locationiq.com/v1/search.php`
 
 
     if (!selected) {
         response.status(404).send("City not found")
     }
 
-    const locationData = require('./data/location.json')
-    const eachLocation = new LocationDataToFit(locationData[0], selected)
-    response.send(eachLocation);
+
+    // const locationData = require('./data/location.json')
+    superagent.get(url).query(geoQuery).then(data => {
+
+        const eachLocation = new LocationDataToFit(data.body[0], selected)
+        response.send(eachLocation);
+    })
 
 }
 
@@ -76,8 +99,8 @@ function LocationDataToFit(data, searchQuery) {
 }
 
 function WeatherDataToFit(day) {
-    this.forecast = day.weather.description;
-    this.time = day.datetime;
+    this.lat = day.lat;
+    this.lon = day.lon;
 
 }
 
