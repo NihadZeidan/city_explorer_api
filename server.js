@@ -28,19 +28,19 @@ app.use('*', handleError);
 
 // Functions to request and response 
 function getParks(request, response) {
-    let requestLan = request.query.latitude
-    let requestLon = request.query.longitude
-    let requestParkCode = request.query.parkCode
+    let requestLat = request.query.latitude;
+    let requestLon = request.query.longitude;
+    let requestParkCode = request.query.parkCode;
 
     let parkQuery = {
         api_key: park_API_Key,
         lon: requestLon,
-        lan: requestLan,
+        lat: requestLat,
         parkCode: requestParkCode,
         parklimit: 10
-    }
+    };
 
-    const url = `https://developer.nps.gov/api/v1/parks`
+    const url = `https://developer.nps.gov/api/v1/parks`;
 
     superagent.get(url).query(parkQuery).then(allData => {
 
@@ -141,6 +141,7 @@ function Park(park) {
     this.address = park.addresses[0].city
     this.description = park.description;
     this.url = park.url
+    this.parkCode = park.parkCode
 }
 
 
