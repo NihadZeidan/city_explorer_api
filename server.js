@@ -13,52 +13,52 @@ const superagent = require('superagent');
 const PORT = process.env.PORT
 const app = express();
 const Geo_Key = process.env.Geo_Key
-const weather_Key = process.env.weather_Key
+const weather_API_Key = process.env.weather_Key
 const NPS_Key = process.env.NPS_Key
 app.use(cors());
 
 
 
-
 // This is the Routes to find the files and get data from them 
-
 app.get('/location', getLocation);
-// app.get('/', () => console.log("WELCOME!"));
-app.get('/weather', getWeather);
+app.get('/weather', takeWeather);
 app.use('*', handleError);
 
 
 // Functions to request and response 
-function getWeather(request, response) {
-    // const searchQuery = request.query;
-    // const weatherQuery = {
-    //     key: weather_Key
-    // }
-    const url = `https://api.weatherbit.io/v2.0/current${weather_Key}`
+function takeWeather(request, response) {
+    // these two lines must be accourding to the Query string parameter in the console (NETWORK)
+    const selectedLat = request.query.latitude;
+    const selectedLon = request.query.longitude;
 
+    const weatherQuery = {
+        key: weather_API_Key,
+        lat: selectedLat,
+        lon: selectedLon,
+        days: 8
+    }
 
+    const url = `http://api.weatherbit.io/v2.0/forecast/daily`
 
-    // const weatherData = require("./data/weather.json");
-    superagent.get(url).then(allData => {
-        const eachWeather = new WeatherDataToFit(allData);
-        response.send(eachWeather);
+    superagent.get(url).query(weatherQuery).then(allData => {
+
+        let array = allData.body.data.map(eachDay => {
+            return new WeatherDataToFit(eachDay)
+        })
+
+        response.send(array)
 
     }).catch((error) => {
         response.status(500).send("something went wrong")
     })
 
 }
-// weatherData.data.map(item => {
-//     arr.push(eachWeather);
-// })
-// }
 
 
 // ---------------------------
 
 function getLocation(request, response) {
     const selected = request.query.city
-        // we can put also  ===> searchQuery.city
     const geoQuery = {
         key: Geo_Key,
         city: selected,
@@ -72,8 +72,6 @@ function getLocation(request, response) {
         response.status(404).send("City not found")
     }
 
-
-    // const locationData = require('./data/location.json')
     superagent.get(url).query(geoQuery).then(data => {
 
         const eachLocation = new LocationDataToFit(data.body[0], selected)
@@ -99,8 +97,8 @@ function LocationDataToFit(data, searchQuery) {
 }
 
 function WeatherDataToFit(day) {
-    this.lat = day.lat;
-    this.lon = day.lon;
+    this.forecast = day.weather.description;
+    this.time = day.datetime;
 
 }
 
