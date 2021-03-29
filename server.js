@@ -6,7 +6,7 @@ require('dotenv').config();
 // This to load the dependancioes for the APP
 const express = require("express");
 const cors = require("cors");
-const { request } = require('express');
+const { request, response } = require('express');
 const superagent = require('superagent');
 
 // Set-up 
@@ -14,7 +14,7 @@ const PORT = process.env.PORT
 const app = express();
 const Geo_Key = process.env.Geo_Key
 const weather_API_Key = process.env.weather_Key
-const NPS_Key = process.env.NPS_Key
+const park_API_Key = process.env.api_key
 app.use(cors());
 
 
@@ -22,10 +22,43 @@ app.use(cors());
 // This is the Routes to find the files and get data from them 
 app.get('/location', getLocation);
 app.get('/weather', takeWeather);
+app.get('/parks', getParks);
 app.use('*', handleError);
 
 
 // Functions to request and response 
+function getParks(request, response) {
+    let requestLan = request.query.latitude
+    let requestLon = request.query.longitude
+    let requestParkCode = request.query.parkCode
+
+    let parkQuery = {
+        api_key: park_API_Key,
+        lon: requestLon,
+        lan: requestLan,
+        parkCode: requestParkCode,
+        parklimit: 10
+    }
+
+    const url = `https://developer.nps.gov/api/v1/parks`
+
+    superagent.get(url).query(parkQuery).then(allData => {
+
+        // console.log(allData.body.data);
+        let array = allData.body.data.map(eachPark => {
+            return new Park(eachPark);
+        })
+
+        response.send(array);
+    }).catch((error) => {
+        response.status(500).send("Error in loading PARKS")
+    })
+}
+
+// ------------------------------------------------
+
+
+
 function takeWeather(request, response) {
     // these two lines must be accourding to the Query string parameter in the console (NETWORK)
     const selectedLat = request.query.latitude;
@@ -43,13 +76,13 @@ function takeWeather(request, response) {
     superagent.get(url).query(weatherQuery).then(allData => {
 
         let array = allData.body.data.map(eachDay => {
-            return new WeatherDataToFit(eachDay)
+            return new WeatherDataToFit(eachDay);
         })
 
         response.send(array)
 
     }).catch((error) => {
-        response.status(500).send("something went wrong")
+        response.status(500).send("Error in loading WEATHER")
     })
 
 }
@@ -100,6 +133,14 @@ function WeatherDataToFit(day) {
     this.forecast = day.weather.description;
     this.time = day.datetime;
 
+}
+
+function Park(park) {
+    this.name = park.fullName;
+    this.fee = park.entranceFees[0].cost;
+    this.address = park.addresses[0].city
+    this.description = park.description;
+    this.url = park.url
 }
 
 
