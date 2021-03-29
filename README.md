@@ -24,6 +24,7 @@
 -->
 
 
+## Lab 06 :
 
 Number and name of feature: 1.Repository Set Up
 
@@ -76,6 +77,22 @@ Start time: 5:35
 Finish time: 5:55
 
 Actual time needed to complete: 20 min
+
+----------------------------------------------------------------
+
+## Lab07 :
+
+
+Number and name of feature:  2. Locations: As a user, I want to enter the name of a location so that I do not need to look up the latitude and longitude every time I learn about a new location.
+
+Estimate of time needed to complete: 1 H
+
+Start time: 3:15 
+
+Finish time: 4:15
+
+Actual time needed to complete: 1 H
+
 
 
 
