@@ -3,7 +3,7 @@ require('dotenv').config();
 
 
 
-// This to load the dependancioes for the APP
+// This to load the dependencies for the APP
 const express = require("express");
 const cors = require("cors");
 const { request, response } = require('express');
@@ -28,16 +28,14 @@ app.use('*', handleError);
 
 // Functions to request and response 
 function getParks(request, response) {
-    let requestLat = request.query.latitude;
-    let requestLon = request.query.longitude;
     let requestParkCode = request.query.parkCode;
 
     let parkQuery = {
         api_key: park_API_Key,
-        lon: requestLon,
-        lat: requestLat,
         parkCode: requestParkCode,
-        parklimit: 10
+        parklimit: 10,
+        // q is based on the parks api website which should be a request to city term (search_query in NETWORK)
+        q: request.query.search_query
     };
 
     const url = `https://developer.nps.gov/api/v1/parks`;
@@ -60,7 +58,7 @@ function getParks(request, response) {
 
 
 function takeWeather(request, response) {
-    // these two lines must be accourding to the Query string parameter in the console (NETWORK)
+    // these two lines must be according to the Query string parameter in the console (NETWORK)
     const selectedLat = request.query.latitude;
     const selectedLon = request.query.longitude;
 
@@ -119,9 +117,10 @@ function handleError(request, response) {
     response.status(status).send(responseText)
 }
 
+// ------------------------------
 
 
-//  Constractor functions to fit the data with the frontEnd
+//  Constructor functions to fit the data with the frontEnd
 function LocationDataToFit(data, searchQuery) {
     this.formatted_query = data.display_name;
     this.latitude = data.lat;
@@ -138,7 +137,7 @@ function WeatherDataToFit(day) {
 function Park(park) {
     this.name = park.fullName;
     this.fee = park.entranceFees[0].cost;
-    this.address = park.addresses[0].city
+    this.address = `${park.addresses[0].city}, ${park.addresses[0].line1}, ${park.addresses[0].stateCode}, ${park.addresses[0].postalCode}`
     this.description = park.description;
     this.url = park.url
     this.parkCode = park.parkCode
