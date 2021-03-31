@@ -120,9 +120,11 @@ function toAddAndRenderFromDB(city) {
 
             });
         }
-    });
+    }).catch((error, response) => {
+        console.log(error);
+        response.status(500).send("ERROR!");
+    })
 }
-
 
 
 // -------------------------------------------------------------
@@ -137,6 +139,9 @@ function getLocation(request, response) {
     toAddAndRenderFromDB(city).then(result => {
 
         response.status(200).send(result);
+    }).catch((error, response) => {
+        console.log(error);
+        response.status(500).send("ERROR!");
     })
 
 }
@@ -181,4 +186,7 @@ client.connect().then(() => {
         console.log('server = ' + PORT)
         console.log("Connected to database:", client.connectionParameters.database)
     });
+}).catch((error, response) => {
+    console.log(error);
+    response.status(500).send("ERROR!");
 })
