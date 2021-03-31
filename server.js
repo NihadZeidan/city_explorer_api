@@ -95,29 +95,35 @@ function takeWeather(request, response) {
 function toAddAndRenderFromDB(city) {
 
     const safeValues = [city];
-    const sqlQuery = `INSERT INTO locations ( city, display_name, lat, lon ) VALUES( $1, $2, $3, $4 );`;
     // const sqlQueryToMatchTheCity = `SELECT * FROM locations WHERE city=$1;`;
-    const sqlQueryToRenderAll = `SELECT * FROM locations;`
+    const sqlQueryToRenderAll = `SELECT * FROM locations WHERE search_query=$1;`
 
-    return client.query(sqlQueryToRenderAll).then(result => {
+    return client.query(sqlQueryToRenderAll, safeValues).then(result => {
         if (result.rows.length !== 0) {
             return result.rows[0];
 
         } else {
-            client.query(sqlQuery, safeValues).then(result => {
-                response.status(200).send(result.rows);
-            })
+            const url = `https://eu1.locationiq.com/v1/search.php`;
+
+            const geoQuery = {
+                key: Geo_Key,
+                city: city,
+                format: 'json'
+            };
+            return superagent.get(url).query(geoQuery).then(data => {
+                const location = new LocationDataToFit(data.body[0], city)
+
+                const safeValues = [city, location.formatted_query, location.latitude, location.longitude];
+                const sqlQuery = `INSERT INTO locations ( search_query, formatted_query, latitude, longitude ) VALUES( $1, $2, $3, $4 );`;
+                client.query(sqlQuery, safeValues);
+                return location;
+            }).catch(error => {
+                console.log(error);
+                response.status(500).send("ERROR!");
+
+            });
         }
-
-    }).catch(error => {
-        console.log(error);
-        response.status(500).send("ERROR!");
     });
-
-    superagent.get(url).query(geoQuery).then(data => {
-        toAddAndRenderFromDB(`${search_query}`, `${data.body[0].formatted_query}`, data.body[0].latitude, data.body[0].longitude);
-    });
-
 }
 
 
@@ -126,18 +132,13 @@ function toAddAndRenderFromDB(city) {
 
 function getLocation(request, response) {
     const { search_query, formatted_query, latitude, longitude } = request.query
-    const url = `https://eu1.locationiq.com/v1/search.php`;
-
-    const geoQuery = {
-        key: Geo_Key,
-        city: city,
-        format: 'json'
-    };
 
     if (!city) {
         response.status(404).send("City not found");
     };
+
     toAddAndRenderFromDB(city).then(result => {
+
 
     })
 
