@@ -4,19 +4,21 @@ require('dotenv').config();
 
 
 // This to load the dependencies for the APP
+const { request, response } = require("express");
 const express = require("express");
 const cors = require("cors");
-const { request, response } = require('express');
 const superagent = require('superagent');
+const pg = require("pg");
 
 // Set-up 
-const PORT = process.env.PORT
+const PORT = process.env.PORT;
 const app = express();
-const Geo_Key = process.env.Geo_Key
-const weather_API_Key = process.env.weather_Key
-const park_API_Key = process.env.api_key
+const Geo_Key = process.env.Geo_Key;
+const weather_API_Key = process.env.weather_Key;
+const park_API_Key = process.env.api_key;
 app.use(cors());
-
+const DataBase_URL = process.env.DataBase_URL;
+const client = new pg.Client(DataBase_URL);
 
 
 // This is the Routes to find the files and get data from them 
@@ -27,12 +29,12 @@ app.use('*', handleError);
 
 
 // Functions to request and response 
+
+
 function getParks(request, response) {
-    let requestParkCode = request.query.parkCode;
 
     let parkQuery = {
         api_key: park_API_Key,
-        parkCode: requestParkCode,
         parklimit: 10,
         // q is based on the parks api website which should be a request to city term (search_query in NETWORK)
         q: request.query.search_query
@@ -42,18 +44,18 @@ function getParks(request, response) {
 
     superagent.get(url).query(parkQuery).then(allData => {
 
-        // console.log(allData.body.data);
         let array = allData.body.data.map(eachPark => {
             return new Park(eachPark);
         })
-
         response.send(array);
+
     }).catch((error) => {
-        response.status(500).send("Error in loading PARKS")
-    })
+        console.log(error);
+        response.status(500).send("Error in loading PARKS");
+    });
 }
 
-// ------------------------------------------------
+// ----------------------------------------------------------
 
 
 
@@ -86,38 +88,67 @@ function takeWeather(request, response) {
 }
 
 
-// ---------------------------
+// ----------------------------------------------------
+
+function toAddAndRenderFromDB(city) {
+
+    const safeValues = [city];
+    const sqlQueryToRenderAll = `SELECT * FROM locations WHERE search_query=$1;`
+
+    return client.query(sqlQueryToRenderAll, safeValues).then(result => {
+        if (result.rows.length !== 0) {
+            return result.rows[0];
+
+        } else {
+            const url = `https://eu1.locationiq.com/v1/search.php`;
+
+            const geoQuery = {
+                key: Geo_Key,
+                city: city,
+                format: 'json'
+            };
+            return superagent.get(url).query(geoQuery).then(data => {
+                const location = new LocationDataToFit(data.body[0], city)
+
+                const safeValues = [city, location.formatted_query, location.latitude, location.longitude];
+                const sqlQuery = `INSERT INTO locations ( search_query, formatted_query, latitude, longitude ) VALUES( $1, $2, $3, $4 );`;
+                client.query(sqlQuery, safeValues);
+                return location;
+            }).catch((error, response) => {
+                console.log(error);
+                response.status(500).send("ERROR!");
+
+            });
+        }
+    });
+}
+
+
+
+// -------------------------------------------------------------
 
 function getLocation(request, response) {
-    const selected = request.query.city
-    const geoQuery = {
-        key: Geo_Key,
-        city: selected,
-        format: 'json'
-    }
+    const { city } = request.query
 
-    const url = `https://eu1.locationiq.com/v1/search.php`
+    if (!city) {
+        response.status(404).send("City not found");
+    };
 
+    toAddAndRenderFromDB(city).then(result => {
 
-    if (!selected) {
-        response.status(404).send("City not found")
-    }
-
-    superagent.get(url).query(geoQuery).then(data => {
-
-        const eachLocation = new LocationDataToFit(data.body[0], selected)
-        response.send(eachLocation);
+        response.status(200).send(result);
     })
 
 }
 
+
+// --------------------------------------------------
+
 function handleError(request, response) {
-    const status = 500;
-    const responseText = "Sorry, something went wrong";
-    response.status(status).send(responseText)
+    response.status(500).send("Sorry, something went wrong")
 }
 
-// ------------------------------
+// -----------------------------------------------
 
 
 //  Constructor functions to fit the data with the frontEnd
@@ -140,9 +171,14 @@ function Park(park) {
     this.address = `${park.addresses[0].city}, ${park.addresses[0].line1}, ${park.addresses[0].stateCode}, ${park.addresses[0].postalCode}`
     this.description = park.description;
     this.url = park.url
-    this.parkCode = park.parkCode
 }
 
 
-//  This to Listen to your port when your run it !
-app.listen(PORT, () => console.log(PORT));
+//  This to connect to the DB then listen to the port when you run it !
+client.connect().then(() => {
+
+    app.listen(PORT, () => {
+        console.log('server = ' + PORT)
+        console.log("Connected to database:", client.connectionParameters.database)
+    });
+})
