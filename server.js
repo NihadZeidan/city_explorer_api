@@ -57,7 +57,7 @@ function getParks(request, response) {
     });
 }
 
-// ------------------------------------------------
+// ----------------------------------------------------------
 
 
 
@@ -90,20 +90,18 @@ function takeWeather(request, response) {
 }
 
 
-// ---------------------------
+// ----------------------------------------------------
 
-function toAddAndRenderFromDB(city, display_name, lat, lon) {
+function toAddAndRenderFromDB(city) {
 
-    const safeValues = [city, display_name, lat, lon];
-    const sqlQuery = `INSERT INTO locations ( city, display_name, lat, lon ) VALUES( $1, $2, $3, $4 );`
-        // const sqlQueryToMatchTheCity = `SELECT * FROM locations WHERE city like ${city};`;
+    const safeValues = [city];
+    const sqlQuery = `INSERT INTO locations ( city, display_name, lat, lon ) VALUES( $1, $2, $3, $4 );`;
+    // const sqlQueryToMatchTheCity = `SELECT * FROM locations WHERE city=$1;`;
     const sqlQueryToRenderAll = `SELECT * FROM locations;`
 
-    client.query(sqlQueryToRenderAll).then(result => {
-        if (result.rows.includes(city)) {
-
-            const eachLocation = new LocationDataToFit(result.rows, city);
-            response.status(200).send(eachLocation);
+    return client.query(sqlQueryToRenderAll).then(result => {
+        if (result.rows.length !== 0) {
+            return result.rows[0];
 
         } else {
             client.query(sqlQuery, safeValues).then(result => {
@@ -115,6 +113,11 @@ function toAddAndRenderFromDB(city, display_name, lat, lon) {
         console.log(error);
         response.status(500).send("ERROR!");
     });
+
+    superagent.get(url).query(geoQuery).then(data => {
+        toAddAndRenderFromDB(`${search_query}`, `${data.body[0].formatted_query}`, data.body[0].latitude, data.body[0].longitude);
+    });
+
 }
 
 
@@ -122,7 +125,7 @@ function toAddAndRenderFromDB(city, display_name, lat, lon) {
 // -------------------------------------------------------------
 
 function getLocation(request, response) {
-    const { city, display_name, lat, lon } = request.query
+    const { search_query, formatted_query, latitude, longitude } = request.query
     const url = `https://eu1.locationiq.com/v1/search.php`;
 
     const geoQuery = {
@@ -134,21 +137,20 @@ function getLocation(request, response) {
     if (!city) {
         response.status(404).send("City not found");
     };
+    toAddAndRenderFromDB(city).then(result => {
 
-    superagent.get(url).query(geoQuery).then(data => {
-        toAddAndRenderFromDB(`${city}`, `${data.body[0].display_name}`, data.body[0].lat, data.body[0].lon);
-    });
+    })
 
 }
 
 
-// ---------------------------------
+// --------------------------------------------------
 
 function handleError(response) {
     response.status(500).send("Sorry, something went wrong")
 }
 
-// ------------------------------
+// -----------------------------------------------
 
 
 //  Constructor functions to fit the data with the frontEnd
