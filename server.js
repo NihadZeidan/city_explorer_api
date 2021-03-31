@@ -32,11 +32,9 @@ app.use('*', handleError);
 
 
 function getParks(request, response) {
-    let requestParkCode = request.query.parkCode;
 
     let parkQuery = {
         api_key: park_API_Key,
-        parkCode: requestParkCode,
         parklimit: 10,
         // q is based on the parks api website which should be a request to city term (search_query in NETWORK)
         q: request.query.search_query
@@ -49,8 +47,8 @@ function getParks(request, response) {
         let array = allData.body.data.map(eachPark => {
             return new Park(eachPark);
         })
-
         response.send(array);
+
     }).catch((error) => {
         console.log(error);
         response.status(500).send("Error in loading PARKS");
@@ -95,7 +93,6 @@ function takeWeather(request, response) {
 function toAddAndRenderFromDB(city) {
 
     const safeValues = [city];
-    // const sqlQueryToMatchTheCity = `SELECT * FROM locations WHERE city=$1;`;
     const sqlQueryToRenderAll = `SELECT * FROM locations WHERE search_query=$1;`
 
     return client.query(sqlQueryToRenderAll, safeValues).then(result => {
@@ -117,7 +114,7 @@ function toAddAndRenderFromDB(city) {
                 const sqlQuery = `INSERT INTO locations ( search_query, formatted_query, latitude, longitude ) VALUES( $1, $2, $3, $4 );`;
                 client.query(sqlQuery, safeValues);
                 return location;
-            }).catch(error => {
+            }).catch((error, response) => {
                 console.log(error);
                 response.status(500).send("ERROR!");
 
@@ -131,7 +128,7 @@ function toAddAndRenderFromDB(city) {
 // -------------------------------------------------------------
 
 function getLocation(request, response) {
-    const { search_query, formatted_query, latitude, longitude } = request.query
+    const { city } = request.query
 
     if (!city) {
         response.status(404).send("City not found");
@@ -139,7 +136,7 @@ function getLocation(request, response) {
 
     toAddAndRenderFromDB(city).then(result => {
 
-
+        response.status(200).send(result);
     })
 
 }
@@ -147,7 +144,7 @@ function getLocation(request, response) {
 
 // --------------------------------------------------
 
-function handleError(response) {
+function handleError(request, response) {
     response.status(500).send("Sorry, something went wrong")
 }
 
@@ -159,7 +156,7 @@ function LocationDataToFit(data, searchQuery) {
     this.formatted_query = data.display_name;
     this.latitude = data.lat;
     this.longitude = data.lon;
-    this.city = searchQuery;
+    this.search_query = searchQuery;
 }
 
 function WeatherDataToFit(day) {
