@@ -16,19 +16,88 @@ const app = express();
 const Geo_Key = process.env.Geo_Key;
 const weather_API_Key = process.env.weather_Key;
 const park_API_Key = process.env.api_key;
+const MOVIE_API_KEY = process.env.MOVIE_API_KEY;
 app.use(cors());
 const DataBase_URL = process.env.DataBase_URL;
-const client = new pg.Client(DataBase_URL);
+const yelp_key = process.env.yelp_key
+
+// this to connect with the DB and avoid any errors like :(DeprecationWarning: Unhandled promise rejections are deprecated.)
+const client = new pg.Client({
+    connectionString: DataBase_URL,
+    // ssl: {
+    //     rejectUnauthorized: false
+    // }
+});
 
 
 // This is the Routes to find the files and get data from them 
 app.get('/location', getLocation);
 app.get('/weather', takeWeather);
 app.get('/parks', getParks);
+app.get('/movies', getMovies);
+// app.get('/yelp', getRestaurants)
 app.use('*', handleError);
 
 
 // Functions to request and response 
+
+
+// function getRestaurants(request, response) {
+
+//     const { latitude, longitude, formatted_query } = request.query
+
+//     const searchQuery = {
+//         api_key: yelp_key,
+//         latitude: latitude,
+//         longitude: longitude,
+//         location: formatted_query,
+//         limit: 20,
+//         // term: 'restaurants', 
+//         // file: "json"
+//     }
+
+//     const yelp_url = 'https://api.yelp.com/v3/businesses/search'
+//     superagent.get(yelp_url).query(searchQuery).then((allData) => {
+
+//         // console.log(allData.businesses);
+
+//         let restaurant = allData.businesses.map(each => {
+//             return new Restaurant(each);
+//         })
+//         response.status(200).send(restaurant);
+
+//     }).catch((error) => {
+//         console.log(error);
+//         response.status(500).send("Error in loading RESTURANTS");
+//     });
+
+// }
+
+
+function getMovies(request, response) {
+
+    const { search_query } = request.query
+
+
+    const movie_url = `https://api.themoviedb.org/3/movie/top_rated`
+
+    const searchQuery = {
+            api_key: MOVIE_API_KEY,
+            region: search_query,
+            format: 'json'
+        }
+        // console.log(search_query);
+
+    superagent.get(movie_url).query(searchQuery).then(allMovies => {
+        console.log(allMovies);
+        let newMovie = new Movie(allMovies);
+        response.status(200).send(newMovie);
+    }).catch((error) => {
+        console.log(error);
+        response.status(500).send("Error in loading MOVIES");
+    });
+
+}
 
 
 function getParks(request, response) {
@@ -157,6 +226,30 @@ function handleError(request, response) {
 
 
 //  Constructor functions to fit the data with the frontEnd
+
+
+function Restaurant(data) {
+    this.name = data.name
+    this.image_url = data.image_url;
+    this.price = data.price;
+    this.rating = data.rating;
+    this.url = data.url;
+
+}
+
+
+function Movie(data) {
+
+    this.title = data.title;
+    this.overview = data.overview;
+    this.average_votes = data.average_votes;
+    this.total_votes = data.total_votes;
+    this.image_url = data.image_url;
+    this.popularity = data.popularity;
+    this.released_on = data.released_on;
+
+}
+
 function LocationDataToFit(data, searchQuery) {
     this.formatted_query = data.display_name;
     this.latitude = data.lat;
