@@ -63,14 +63,10 @@ function getRestaurants(request, response) {
         limit: 5,
         offset: page + 5,
         term: 'restaurants',
-        // format: 'json'
+        format: 'json'
     }
 
-
     const yelp_url = `https://api.yelp.com/v3/businesses/search`
-
-
-
 
     superagent.get(yelp_url).set('Authorization', `Bearer ${yelp_key}`).query(searchQuery).then((allData) => {
 
@@ -78,7 +74,8 @@ function getRestaurants(request, response) {
 
         let restaurant = allData.body.businesses.map(each => {
             return new Restaurant(each);
-        })
+        });
+
         response.status(200).send(restaurant);
 
     }).catch((error) => {
@@ -109,8 +106,8 @@ function getMovies(request, response) {
         let newMovie = allMovies.body.results.map(each => {
             return new Movie(each);
         })
-
         response.status(200).send(newMovie);
+
     }).catch((error, response) => {
         console.log(error);
         response.status(500).send("Error in loading MOVIES");
