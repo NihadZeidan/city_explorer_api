@@ -13,9 +13,12 @@ const pg = require("pg");
 // Set-up 
 const PORT = process.env.PORT;
 const app = express();
+
+
+
+const park_API_Key = process.env.park_API_Key
 const Geo_Key = process.env.Geo_Key;
 const weather_API_Key = process.env.weather_Key;
-const park_API_Key = process.env.api_key;
 const MOVIE_API_KEY = process.env.MOVIE_API_KEY;
 app.use(cors());
 const DATABASE_URL = process.env.DATABASE_URL;
@@ -120,7 +123,7 @@ function getParks(request, response) {
 
     let parkQuery = {
         api_key: park_API_Key,
-        parklimit: 10,
+        limit: 10,
         // q is based on the parks api website which should be a request to city term (search_query in NETWORK)
         q: request.query.search_query
     };
@@ -173,7 +176,7 @@ function takeWeather(request, response) {
 }
 
 
-// ----------------------------------------------------
+// ------------------------------------
 
 function toAddAndRenderFromDB(city) {
 
@@ -238,7 +241,9 @@ function handleError(request, response) {
     response.status(500).send("Sorry, something went wrong")
 }
 
+
 // -----------------------------------------------
+
 
 
 //  Constructor functions to fit the data with the frontEnd
@@ -279,8 +284,9 @@ function WeatherDataToFit(day) {
 
 }
 
+
 function Park(park) {
-    this.name = park.fullName;
+    this.name = `${park.fullName}`;
     this.fee = park.entranceFees[0].cost;
     this.address = `${park.addresses[0].city}, ${park.addresses[0].line1}, ${park.addresses[0].stateCode}, ${park.addresses[0].postalCode}`
     this.description = park.description;
