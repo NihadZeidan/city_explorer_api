@@ -47,7 +47,7 @@ function getRestaurants(request, response) {
     const { latitude, longitude, search_query } = request.query
 
     const searchQuery = {
-        api_key: yelp_key,
+        // key: yelp_key,
         latitude: latitude,
         longitude: longitude,
         location: search_query,
@@ -57,7 +57,7 @@ function getRestaurants(request, response) {
     }
 
     const yelp_url = 'https://api.yelp.com/v3/businesses/search'
-    superagent.get(yelp_url).auth('', { type: 'bearer' }).query(searchQuery).then((allData) => {
+    superagent.get(yelp_url).set('Authorization', `Bearer ${yelp_key}`).query(searchQuery).then((allData) => {
 
         // console.log(allData.head.businesses);
 
