@@ -18,7 +18,7 @@ const weather_API_Key = process.env.weather_Key;
 const park_API_Key = process.env.api_key;
 const MOVIE_API_KEY = process.env.MOVIE_API_KEY;
 app.use(cors());
-const DataBase_URL = process.env.DataBase_URL;
+const DATABASE_URL = process.env.DATABASE_URL;
 const yelp_key = process.env.yelp_key
 const ENV = process.env.ENV
 
@@ -26,11 +26,11 @@ const ENV = process.env.ENV
 let client = '';
 if (ENV === 'DEV') {
     client = new pg.Client({
-        connectionString: DataBase_URL,
+        connectionString: DATABASE_URL,
     })
 } else {
     client = new pg.Client({
-        connectionString: DataBase_URL,
+        connectionString: DATABASE_URL,
         ssl: {
             rejectUnauthorized: false
         }
