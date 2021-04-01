@@ -55,16 +55,15 @@ app.use('*', handleError);
 
 function getRestaurants(request, response) {
 
-    const { latitude, longitude, search_query, page } = request.query
+    const { latitude, longitude, page } = request.query
 
     const searchQuery = {
         latitude: latitude,
         longitude: longitude,
-        location: search_query,
         limit: 5,
         offset: page + 5,
         term: 'restaurants',
-        format: 'json'
+        // format: 'json'
     }
 
 
@@ -112,7 +111,7 @@ function getMovies(request, response) {
         })
 
         response.status(200).send(newMovie);
-    }).catch((error) => {
+    }).catch((error, response) => {
         console.log(error);
         response.status(500).send("Error in loading MOVIES");
     });
@@ -139,7 +138,7 @@ function getParks(request, response) {
         response.send(array);
 
     }).catch((error) => {
-        console.log(error);
+        console.log(error, response);
         response.status(500).send("Error in loading PARKS");
     });
 }
@@ -170,7 +169,7 @@ function takeWeather(request, response) {
 
         response.send(array)
 
-    }).catch((error) => {
+    }).catch((error, response) => {
         response.status(500).send("Error in loading WEATHER")
     })
 
