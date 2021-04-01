@@ -20,14 +20,25 @@ const MOVIE_API_KEY = process.env.MOVIE_API_KEY;
 app.use(cors());
 const DataBase_URL = process.env.DataBase_URL;
 const yelp_key = process.env.yelp_key
+const ENV = process.env.ENV
 
-// this to connect with the DB and avoid any errors like :(DeprecationWarning: Unhandled promise rejections are deprecated.)
-const client = new pg.Client({
-    connectionString: DataBase_URL,
-    // ssl: {
-    //     rejectUnauthorized: false
-    // }
-});
+// this to connect with the DB on heroku (by adding ssl {} if you are on heroku) and avoid any errors like :(DeprecationWarning: Unhandled promise rejections are deprecated.)
+let client = '';
+if (ENV === 'DEV') {
+    client = new pg.Client({
+        connectionString: DataBase_URL,
+    })
+} else {
+    client = new pg.Client({
+        connectionString: DataBase_URL,
+        ssl: {
+            rejectUnauthorized: false
+        }
+
+    })
+}
+
+
 
 
 // This is the Routes to find the files and get data from them 
@@ -44,22 +55,27 @@ app.use('*', handleError);
 
 function getRestaurants(request, response) {
 
-    const { latitude, longitude, search_query } = request.query
+    const { latitude, longitude, search_query, page } = request.query
 
     const searchQuery = {
-        // key: yelp_key,
         latitude: latitude,
         longitude: longitude,
         location: search_query,
-        limit: 20,
+        limit: 5,
+        offset: page + 5,
         term: 'restaurants',
-        // format: "json"
+        format: 'json'
     }
 
-    const yelp_url = 'https://api.yelp.com/v3/businesses/search'
+
+    const yelp_url = `https://api.yelp.com/v3/businesses/search`
+
+
+
+
     superagent.get(yelp_url).set('Authorization', `Bearer ${yelp_key}`).query(searchQuery).then((allData) => {
 
-        // console.log(allData.head.businesses);
+
 
         let restaurant = allData.body.businesses.map(each => {
             return new Restaurant(each);
@@ -78,13 +94,15 @@ function getMovies(request, response) {
 
     const { search_query } = request.query
 
+    const uri = encodeURI(search_query)
 
-    const movie_url = `https://api.themoviedb.org/3/movie/top_rated`
+
+    const movie_url = `https://api.themoviedb.org/3/search/movie`
 
     const searchQuery = {
         api_key: MOVIE_API_KEY,
-        location: search_query,
-
+        query: uri,
+        limit: 20
     }
 
     superagent.get(movie_url).query(searchQuery).then(allMovies => {
