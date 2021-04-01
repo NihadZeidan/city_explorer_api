@@ -35,43 +35,43 @@ app.get('/location', getLocation);
 app.get('/weather', takeWeather);
 app.get('/parks', getParks);
 app.get('/movies', getMovies);
-// app.get('/yelp', getRestaurants)
+app.get('/yelp', getRestaurants)
 app.use('*', handleError);
 
 
 // Functions to request and response 
 
 
-// function getRestaurants(request, response) {
+function getRestaurants(request, response) {
 
-//     const { latitude, longitude, formatted_query } = request.query
+    const { latitude, longitude, search_query } = request.query
 
-//     const searchQuery = {
-//         api_key: yelp_key,
-//         latitude: latitude,
-//         longitude: longitude,
-//         location: formatted_query,
-//         limit: 20,
-//         // term: 'restaurants', 
-//         // file: "json"
-//     }
+    const searchQuery = {
+        api_key: yelp_key,
+        latitude: latitude,
+        longitude: longitude,
+        location: search_query,
+        limit: 20,
+        term: 'restaurants',
+        // format: "json"
+    }
 
-//     const yelp_url = 'https://api.yelp.com/v3/businesses/search'
-//     superagent.get(yelp_url).query(searchQuery).then((allData) => {
+    const yelp_url = 'https://api.yelp.com/v3/businesses/search'
+    superagent.get(yelp_url).auth('', { type: 'bearer' }).query(searchQuery).then((allData) => {
 
-//         // console.log(allData.businesses);
+        // console.log(allData.head.businesses);
 
-//         let restaurant = allData.businesses.map(each => {
-//             return new Restaurant(each);
-//         })
-//         response.status(200).send(restaurant);
+        let restaurant = allData.body.businesses.map(each => {
+            return new Restaurant(each);
+        })
+        response.status(200).send(restaurant);
 
-//     }).catch((error) => {
-//         console.log(error);
-//         response.status(500).send("Error in loading RESTURANTS");
-//     });
+    }).catch((error) => {
+        console.log(error);
+        response.status(500).send("Error in loading RESTURANTS");
+    });
 
-// }
+}
 
 
 function getMovies(request, response) {
@@ -82,15 +82,17 @@ function getMovies(request, response) {
     const movie_url = `https://api.themoviedb.org/3/movie/top_rated`
 
     const searchQuery = {
-            api_key: MOVIE_API_KEY,
-            region: search_query,
-            format: 'json'
-        }
-        // console.log(search_query);
+        api_key: MOVIE_API_KEY,
+        location: search_query,
+
+    }
 
     superagent.get(movie_url).query(searchQuery).then(allMovies => {
-        console.log(allMovies);
-        let newMovie = new Movie(allMovies);
+        // console.log(allMovies.body.results);
+        let newMovie = allMovies.body.results.map(each => {
+            return new Movie(each);
+        })
+
         response.status(200).send(newMovie);
     }).catch((error) => {
         console.log(error);
