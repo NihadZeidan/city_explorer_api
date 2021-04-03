@@ -266,7 +266,7 @@ function Movie(data) {
     this.overview = data.overview;
     this.average_votes = data.average_votes;
     this.total_votes = data.total_votes;
-    this.image_url = data.poster_path;
+    this.image_url = data.backdrop_path;
     this.popularity = data.popularity;
     this.released_on = data.released_on;
 
