@@ -31,7 +31,7 @@ let client = '';
 if (ENV === 'DEV') {
     client = new pg.Client({
         connectionString: DATABASE_URL,
-    })
+    });
 } else {
     client = new pg.Client({
         connectionString: DATABASE_URL,
@@ -40,7 +40,7 @@ if (ENV === 'DEV') {
         }
 
     })
-}
+};
 
 
 
@@ -106,7 +106,7 @@ function getMovies(request, response) {
     }
 
     superagent.get(movie_url).query(searchQuery).then(allMovies => {
-        // console.log(allMovies.body.results);
+        console.log(allMovies.body.results);
         let newMovie = allMovies.body.results.map(each => {
             return new Movie(each);
         })
@@ -266,7 +266,7 @@ function Movie(data) {
     this.overview = data.overview;
     this.average_votes = data.average_votes;
     this.total_votes = data.total_votes;
-    this.image_url = data.image_url;
+    this.image_url = data.poster_path;
     this.popularity = data.popularity;
     this.released_on = data.released_on;
 
@@ -305,4 +305,4 @@ client.connect().then(() => {
 }).catch((error, response) => {
     console.log(error);
     response.status(500).send("ERROR!");
-})
+});
