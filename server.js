@@ -18,7 +18,22 @@ const weather_API_Key = process.env.weather_Key;
 const park_API_Key = process.env.api_key;
 app.use(cors());
 const DataBase_URL = process.env.DataBase_URL;
-const client = new pg.Client(DataBase_URL);
+
+let client = '';
+if (ENV === 'DEV') {
+    client = new pg.Client({
+        connectionString: DATABASE_URL,
+    })
+} else {
+    client = new pg.Client({
+        connectionString: DATABASE_URL,
+        ssl: {
+            rejectUnauthorized: false
+        }
+
+    })
+}
+
 
 
 // This is the Routes to find the files and get data from them 
