@@ -21,6 +21,7 @@ const Geo_Key = process.env.Geo_Key;
 const weather_API_Key = process.env.weather_Key;
 const MOVIE_API_KEY = process.env.MOVIE_API_KEY;
 app.use(cors());
+
 const DATABASE_URL = process.env.DATABASE_URL;
 const yelp_key = process.env.yelp_key
 const ENV = process.env.ENV
