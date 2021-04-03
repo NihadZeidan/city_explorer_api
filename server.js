@@ -260,7 +260,8 @@ function Movie(data) {
     this.overview = data.overview;
     this.average_votes = data.average_votes;
     this.total_votes = data.total_votes;
-    this.image_url = data.backdrop_path;
+    // I get this from (configuration) tab in the movies website, where they provide a base_url to render the images from.
+    this.image_url = `https://image.tmdb.org/t/p/w500/${data.poster_path}`;
     this.popularity = data.popularity;
     this.released_on = data.released_on;
 
